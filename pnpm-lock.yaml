@@ -20,6 +20,9 @@ dependencies:
   cron:
     specifier: ^2.4.4
     version: 2.4.4
+  dotenv:
+    specifier: ^16.4.5
+    version: 16.4.5
   lodash:
     specifier: ^4.17.21
     version: 4.17.21

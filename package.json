@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node index.ts",
+    "start": "ts-node -r dotenv/config index.ts",
     "ncu": "ncu",
     "dev": "nodemon index.ts"
   },
@@ -19,6 +19,7 @@
     "@shanyue/promise-utils": "^2.0.4",
     "@types/cron": "^2.4.0",
     "cron": "^2.4.4",
+    "dotenv": "^16.4.5",
     "lodash": "^4.17.21",
     "midash": "^0.8.6",
     "nodemon": "^2.0.22",
