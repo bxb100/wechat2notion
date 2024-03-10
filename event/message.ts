@@ -25,7 +25,6 @@ export async function handleMessage(msg: Message) {
   if (!(await room?.topic())) {
     return
   }
-  await room.sync()
 
   // AI增长黑客团
   if (room.id === config.monitorWechatGroupId) {

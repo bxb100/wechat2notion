@@ -11,7 +11,7 @@ export const routes: Route[] = [
   {
     keyword: '/notion',
     handle() {
-      return config.notionSharePage
+      return config.notionShareLink
     },
   }
 ]

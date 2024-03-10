@@ -12,8 +12,8 @@ import { Message as MessageType } from 'wechaty-puppet/types'
 
 const notion = new Client({auth: config.notionKey})
 const r2 = new Operator("s3", {
-  endpoint: config.r2S3API,
-  bucket: config.r2Name,
+  endpoint: config.r2API,
+  bucket: config.r2Bucket,
   region: "auto",
   access_key_id: config.r2KeyId,
   secret_access_key: config.r2Key,
@@ -52,7 +52,7 @@ async function getPropertiesFromMsg(msg: Message, room: Room) {
   let message = {text: {content: content}}
   let attach = undefined
   // MessageType.Url
-  if (msg.type() === 14) {
+  if (msg.type() === MessageType.Url) {
     const urlLink = await msg.toUrlLink()
     message = {
       text: {
