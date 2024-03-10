@@ -17,7 +17,7 @@ const bot = WechatyBuilder.build({
   puppetOptions: {
     uos: true, // 开启uos协议
   },
-  puppet: 'wechaty-puppet-wechat4u',
+  puppet: 'wechaty-puppet-wechat',
 })
 
 function handleScan(qrcode: string) {

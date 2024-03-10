@@ -3,7 +3,7 @@ export default {
 
   logger: true,
 
-  monitorWechatGroupId: process.env.WECHAT_GROUP_ID,
+  monitorWechatGroup: process.env.WECHAT_GROUP,
 
   notionKey: process.env.NOTION_KEY,
   notionDatabaseId: process.env.NOTION_DATABASE_ID,

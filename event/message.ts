@@ -22,12 +22,13 @@ export async function handleMessage(msg: Message) {
   }
 
   const room = msg.room()
-  if (!(await room?.topic())) {
+  let topic = null
+  if (!(topic = await room?.topic())) {
     return
   }
 
   // AI增长黑客团
-  if (room.id === config.monitorWechatGroupId) {
+  if (topic === config.monitorWechatGroup) {
     // 将信息打包发送到 notion 中
     if (msg.type() !== MessageType.Unknown && msg.type() !== MessageType.Recalled) {
       createPages(msg, room)
