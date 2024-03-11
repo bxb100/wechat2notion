@@ -1,20 +1,34 @@
 import { Message } from 'wechaty'
 import { Message as MessageType } from 'wechaty-puppet/types'
 import { routes } from '../message'
-import { createPages } from "../notion/job";
+import { createPages, getPropertiesFromMsg } from "../notion/job";
 import config from "../config";
+import { AsyncBlockingQueue } from "../notion/queue";
+
+const blockQueue = new AsyncBlockingQueue()
+setInterval(async () => {
+  if (blockQueue.isEmpty()) {
+    return
+  }
+  // 1 秒钟处理 20 条数据
+  let count = 20
+  while (!blockQueue.isEmpty() && count > 0) {
+    const data = await blockQueue.dequeue()
+    await createPages(data)
+    count--
+  }
+}, 1000)
 
 // 默认只回复私聊，以及艾特我的群聊
 async function defaultFilter(msg: Message) {
-  const metionSelf = await msg.mentionSelf()
+  const mentionSelf = await msg.mentionSelf()
   return (
     msg.type() === MessageType.Text &&
-    (!msg.room() || (msg.room() && metionSelf))
+    (!msg.room() || (msg.room() && mentionSelf))
   )
 }
 
 const createdAt = Date.now()
-
 export async function handleMessage(msg: Message) {
   if (msg.type() === MessageType.Unknown || msg.type() === MessageType.Recalled) {
     console.debug('Unknown message type ' + msg)
@@ -31,7 +45,7 @@ export async function handleMessage(msg: Message) {
   if (topic === config.monitorWechatGroup) {
     // 将信息打包发送到 notion 中
     if (msg.type() !== MessageType.Unknown && msg.type() !== MessageType.Recalled) {
-      createPages(msg, room)
+      blockQueue.enqueue(await getPropertiesFromMsg(msg, room))
     }
   }
 

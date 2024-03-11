@@ -28,30 +28,37 @@ const databaseId = config.notionDatabaseId
  * https://developers.notion.com/reference/post-page
  *
  */
-export async function createPages(msg: Message, room: Room) {
+export async function createPages(props: any) {
   await notion.pages.create({
     // @ts-ignore
-    parent: {database_id: databaseId}, properties: await getPropertiesFromMsg(msg, room),
+    parent: {database_id: databaseId}, properties: props,
   })
 }
-
 
 //*========================================================================
 // Helpers
 //*========================================================================
 
+const map = new Map<string, string>();
+
 /**
  * Returns the Message to conform to this database's schema properties.
  *
  */
-async function getPropertiesFromMsg(msg: Message, room: Room) {
+export async function getPropertiesFromMsg(msg: Message, room: Room) {
   const from = msg.talker()
-  const alias = await room?.alias(from)
+  let alias: string | undefined
+  if (map.has(from.id)) {
+    alias = map.get(from.id) || ""
+  } else {
+    // TODO: 频率过高会导致 not found at async WechatifiedUserClass.alias
+    alias = await room?.alias(from)
+    map.set(from.id, alias)
+  }
   const sendDate = msg.date()
   let content = msg.text()
   let message = {text: {content: content}}
   let attach = undefined
-  // MessageType.Url
   if (msg.type() === MessageType.Url) {
     const urlLink = await msg.toUrlLink()
     message = {
@@ -63,7 +70,6 @@ async function getPropertiesFromMsg(msg: Message, room: Room) {
       }, href: urlLink.url()
     }
   }
-  // MessageType.Image
   if (msg.type() === MessageType.Image || msg.type() == MessageType.Video || msg.type() === MessageType.Audio || msg.type() === MessageType.Attachment) {
     const file = await msg.toFileBox()
     await r2.write(`${ file.name }`, await file.toBuffer())
@@ -81,6 +87,19 @@ async function getPropertiesFromMsg(msg: Message, room: Room) {
       }
     }
   }
+  if (msg.type() === MessageType.Emoticon) {
+    const file = await msg.toFileBox()
+    message = {text: {content: `表情: ${ file.name }`}}
+  }
+  if (msg.type() === MessageType.Text) {
+    // extract URL from the <a> Tag
+    content = content.replace(/<a .+?>([^<]+)<\/a>/g, "$1")
+    // extract emoji from the <img> Tag
+    content = content.replace(/<img class="qqemoji \w+" text="(\[.+?])_web".+?\/>/g, "$1")
+    content = content.replace(/<img class="qqemoji \w+" text="(\[.+?])_web".+?\/>/g, "$1")
+    content = content.replace(/<br\/>/g, "\n")
+    message = {text: {content: content}}
+  }
 
   return {
     "From": {
@@ -90,7 +109,11 @@ async function getPropertiesFromMsg(msg: Message, room: Room) {
     }, "Message": {
       rich_text: [message]
     }, "Date": {
-      date: {start: sendDate.toISOString(), time_zone: "Asia/Shanghai"},
-    }, ...attach
+      date: {start: sendDate.toISOString()},
+    },
+    "Message ID": {
+      rich_text: [{text: {content: msg.id}}]
+    },
+    ...attach
   }
 }
